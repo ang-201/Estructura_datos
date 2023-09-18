@@ -2,127 +2,119 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct Nodo {
-    char palabra[100];
-    struct Nodo* siguiente;
-} Nodo;
+// Definición de la estructura de un nodo de la lista enlazada
+typedef struct Node {
+    char word[100];
+    struct Node* next;
+} Node;
 
-Nodo* crearNodo(char* palabra) {
-    Nodo* nuevoNodo = (Nodo*)malloc(sizeof(Nodo));
-    strcpy(nuevoNodo->palabra, palabra);
-    nuevoNodo->siguiente = NULL;
-    return nuevoNodo;
-}
+// Función para insertar una palabra al final de la lista
+void insert(Node** head, char* word) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    strcpy(newNode->word, word);
+    newNode->next = NULL;
 
-void insertarPalabra(Nodo** lista, char* palabra) {
-    Nodo* nuevoNodo = crearNodo(palabra);
-    if (*lista == NULL) {
-        *lista = nuevoNodo;
+    if (*head == NULL) {
+        *head = newNode;
     } else {
-        Nodo* temp = *lista;
-        while (temp->siguiente != NULL) {
-            temp = temp->siguiente;
+        Node* current = *head;
+        while (current->next != NULL) {
+            current = current->next;
         }
-        temp->siguiente = nuevoNodo;
+        current->next = newNode;
     }
 }
 
-void borrarPalabra(Nodo** lista, char* palabra) {
-    Nodo* temp = *lista;
-    Nodo* prev = NULL;
-
-    if (temp != NULL && strcmp(temp->palabra, palabra) == 0) {
-        *lista = temp->siguiente;
-        free(temp);
+// Función para eliminar una palabra de la lista
+void removeWord(Node** head, char* word) {
+    if (*head == NULL) {
         return;
     }
 
-    while (temp != NULL && strcmp(temp->palabra, palabra) != 0) {
-        prev = temp;
-        temp = temp->siguiente;
+    Node* current = *head;
+    Node* prev = NULL;
+
+    // Buscar la palabra en la lista
+    while (current != NULL && strcmp(current->word, word) != 0) {
+        prev = current;
+        current = current->next;
     }
 
-    if (temp == NULL) {
+    // Si se encuentra la palabra, eliminarla
+    if (current != NULL) {
+        if (prev == NULL) {
+            *head = current->next;
+        } else {
+            prev->next = current->next;
+        }
+        free(current);
+    }
+}
+
+// Función para escribir las palabras de la lista en un archivo
+void writeToFile(Node* head, const char* filename) {
+    FILE* file = fopen(filename, "w");
+    if (file == NULL) {
+        printf("Error al abrir el archivo.\n");
         return;
     }
 
-    prev->siguiente = temp->siguiente;
-    free(temp);
-}
-
-void escribirArchivo(Nodo* lista, char* nombreArchivo) {
-    FILE* archivo = fopen(nombreArchivo, "w");
-    Nodo* temp = lista;
-    while (temp != NULL) {
-        fprintf(archivo, "%s\n", temp->palabra);
-        temp = temp->siguiente;
+    Node* current = head;
+    while (current != NULL) {
+        fprintf(file, "%s\n", current->word);
+        current = current->next;
     }
-    fclose(archivo);
-}
 
-void liberarLista(Nodo* lista) {
-    Nodo* temp = lista;
-    while (temp != NULL) {
-        Nodo* siguiente = temp->siguiente;
-        free(temp);
-        temp = siguiente;
-    }
+    fclose(file);
 }
 
 int main() {
-    char nombreArchivo[100];
+    char filename[100];
     printf("Ingrese el nombre del archivo: ");
-    scanf("%s", nombreArchivo);
+    scanf("%s", filename);
 
-    FILE* archivo = fopen(nombreArchivo, "r");
-    if (archivo == NULL) {
-        printf("No se pudo abrir el archivo.\n");
-        return 1;
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("Error al abrir el archivo.\n");
+        return 0;
     }
 
-    Nodo* lista = NULL;
-    char palabra[100];
-    while (fscanf(archivo, "%s", palabra) != EOF) {
-        insertarPalabra(&lista, palabra);
+    Node* head = NULL;
+    char word[100];
+
+    // Leer palabras del archivo y formar la lista
+    while (fscanf(file, "%s", word) == 1) {
+        insert(&head, word);
     }
 
-    fclose(archivo);
+    fclose(file);
 
-    char opcion;
-    do {
-        printf("\n1. Añadir palabra\n");
-        printf("2. Borrar palabra\n");
-        printf("3. Salir\n");
-        printf("Ingrese una opción: ");
-        scanf(" %c", &opcion);
+    // Agregar nuevas palabras
+    printf("Ingrese una palabra para agregar (o 'salir' para terminar): ");
+    scanf("%s", word);
+    while (strcmp(word, "salir") != 0) {
+        insert(&head, word);
+        printf("Ingrese una palabra para agregar (o 'salir' para terminar): ");
+        scanf("%s", word);
+    }
 
-        switch (opcion) {
-            case '1': {
-                printf("Ingrese la palabra a añadir: ");
-                scanf("%s", palabra);
-                insertarPalabra(&lista, palabra);
-                break;
-            }
-            case '2': {
-                printf("Ingrese la palabra a borrar: ");
-                scanf("%s", palabra);
-                borrarPalabra(&lista, palabra);
-                break;
-            }
-            case '3': {
-                break;
-            }
-            default: {
-                printf("Opción inválida. Intente nuevamente.\n");
-                break;
-            }
-        }
-    } while (opcion != '3');
+    // Eliminar una palabra
+    printf("Ingrese una palabra para eliminar (o 'ninguna' para omitir): ");
+    scanf("%s", word);
+    if (strcmp(word, "ninguna") != 0) {
+        removeWord(&head, word);
+    }
 
-    escribirArchivo(lista, nombreArchivo);
-    liberarLista(lista);
+    // Escribir las palabras en el archivo
+    writeToFile(head, filename);
 
-    printf("Programa finalizado. Palabras guardadas en el archivo.\n");
+    // Liberar memoria
+    Node* current = head;
+    while (current != NULL) {
+        Node* temp = current;
+        current = current->next;
+        free(temp);
+    }
 
     return 0;
 }
