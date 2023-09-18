@@ -1,103 +1,101 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
-struct Node {
-    char name[50];
-    struct Node* next;
-};
+#define MAX_SIZE 6
 
-struct LinkedList {
-    struct Node* head;
-    struct Node* tail;
-};
+typedef struct Queue {
+    char names[MAX_SIZE][20];
+    int front;
+    int rear;
+} Queue;
 
-void initializeList(struct LinkedList* list) {
-    list->head = NULL;
-    list->tail = NULL;
+void initQueue(Queue* queue) {
+    queue->front = -1;
+    queue->rear = -1;
 }
 
-void insert(struct LinkedList* list, const char* name) {
-    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
-    strcpy(newNode->name, name);
-    newNode->next = NULL;
+int isEmpty(Queue* queue) {
+    return (queue->front == -1);
+}
 
-    if (list->head == NULL) {
-        list->head = newNode;
-        list->tail = newNode;
+int isFull(Queue* queue) {
+    return ((queue->front == 0 && queue->rear == MAX_SIZE - 1) || (queue->rear == (queue->front - 1) % (MAX_SIZE - 1)));
+}
+
+void enqueue(Queue* queue, char* name) {
+    if (isFull(queue)) {
+        printf("La cola está llena. No se pueden agregar más elementos.\n");
+        return;
+    }
+    if (isEmpty(queue)) {
+        queue->front = 0;
+        queue->rear = 0;
+    } else if (queue->rear == MAX_SIZE - 1 && queue->front != 0) {
+        queue->rear = 0;
     } else {
-        list->tail->next = newNode;
-        list->tail = newNode;
+        queue->rear = (queue->rear + 1) % MAX_SIZE;
     }
+    strcpy(queue->names[queue->rear], name);
+    printf("%s añadido a la cola\n", name);
 }
 
-void removeNodesGreaterThan(struct LinkedList* list, const char* name) {
-    struct Node* current = list->head;
-    struct Node* previous = NULL;
-
-    while (current != NULL) {
-        if (strcmp(current->name, name) > 0) {
-            if (previous == NULL) {
-                list->head = current->next;
-            } else {
-                previous->next = current->next;
-            }
-            struct Node* temp = current;
-            current = current->next;
-            free(temp);
-        } else {
-            previous = current;
-            current = current->next;
-        }
+void dequeue(Queue* queue) {
+    if (isEmpty(queue)) {
+        printf("La cola está vacía. No se pueden eliminar elementos.\n");
+        return;
     }
-
-    if (previous == NULL) {
-        list->tail = NULL;
+    printf("%s eliminado de la cola\n", queue->names[queue->front]);
+    if (queue->front == queue->rear) {
+        queue->front = -1;
+        queue->rear = -1;
+    } else if (queue->front == MAX_SIZE - 1) {
+        queue->front = 0;
     } else {
-        list->tail = previous;
+        queue->front = queue->front + 1;
     }
 }
 
-void printList(struct LinkedList list) {
-    struct Node* current = list.head;
-    while (current != NULL) {
-        printf("%s ", current->name);
-        current = current->next;
+void printQueue(Queue* queue) {
+    if (isEmpty(queue)) {
+        printf("La cola está vacía\n");
+        return;
     }
-    printf("\n");
-}
-
-void freeList(struct LinkedList* list) {
-    struct Node* current = list->head;
-    while (current != NULL) {
-        struct Node* temp = current;
-        current = current->next;
-        free(temp);
+    int i = queue->front;
+    printf("Elementos de la cola:\n");
+    while (i != queue->rear) {
+        printf("%s\n", queue->names[i]);
+        i = (i + 1) % MAX_SIZE;
     }
-    list->head = NULL;
-    list->tail = NULL;
+    printf("%s\n", queue->names[i]);
 }
 
 int main() {
-    struct LinkedList list;
-    initializeList(&list);
+    Queue queue;
+    initQueue(&queue);
 
-    insert(&list, "Mar");
-    insert(&list, "Sella");
-    insert(&list, "Centurión");
+    enqueue(&queue, "Mar");
+    enqueue(&queue, "Sella");
+    enqueue(&queue, "Centurión");
 
-    printf("Elementos de la lista enlazada: ");
-    printList(list);
+    printQueue(&queue);
 
-    insert(&list, "Gloria");
-    insert(&list, "Generosa");
+    enqueue(&queue, "Gloria");
+    enqueue(&queue, "Generosa");
 
-    removeNodesGreaterThan(&list, "Centurión");
+    dequeue(&queue);
 
-    printf("Elementos de la lista después de eliminar mayores a Centurión: ");
-    printList(list);
+    enqueue(&queue, "Positivo");
+    enqueue(&queue, "Horche");
 
-    freeList(&list);
+    printQueue(&queue);
+
+    dequeue(&queue);
+    dequeue(&queue);
+    dequeue(&queue);
+    dequeue(&queue);
+    dequeue(&queue);
+
+    printQueue(&queue);
 
     return 0;
 }
