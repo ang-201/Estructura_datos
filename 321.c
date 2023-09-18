@@ -1,101 +1,72 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_SIZE 6
 
-typedef struct Queue {
-    char names[MAX_SIZE][20];
-    int front;
-    int rear;
-} Queue;
+// Estructura para la cola circular
+struct ColaCircular {
+    char nombres[MAX_SIZE][50];
+    int frente;
+    int final;
+    int cantidad;
+};
 
-void initQueue(Queue* queue) {
-    queue->front = -1;
-    queue->rear = -1;
+// Función para inicializar la cola
+void inicializarCola(struct ColaCircular *cola) {
+    cola->frente = 2;
+    cola->final = 2;
+    cola->cantidad = 0;
 }
 
-int isEmpty(Queue* queue) {
-    return (queue->front == -1);
-}
-
-int isFull(Queue* queue) {
-    return ((queue->front == 0 && queue->rear == MAX_SIZE - 1) || (queue->rear == (queue->front - 1) % (MAX_SIZE - 1)));
-}
-
-void enqueue(Queue* queue, char* name) {
-    if (isFull(queue)) {
-        printf("La cola está llena. No se pueden agregar más elementos.\n");
-        return;
-    }
-    if (isEmpty(queue)) {
-        queue->front = 0;
-        queue->rear = 0;
-    } else if (queue->rear == MAX_SIZE - 1 && queue->front != 0) {
-        queue->rear = 0;
+// Función para agregar un nombre a la cola
+void encolar(struct ColaCircular *cola, const char *nombre) {
+    if (cola->cantidad < MAX_SIZE) {
+        strcpy(cola->nombres[cola->final], nombre);
+        cola->final = (cola->final + 1) % MAX_SIZE;
+        cola->cantidad++;
     } else {
-        queue->rear = (queue->rear + 1) % MAX_SIZE;
+        printf("La cola está llena. No se puede agregar %s\n", nombre);
     }
-    strcpy(queue->names[queue->rear], name);
-    printf("%s añadido a la cola\n", name);
 }
 
-void dequeue(Queue* queue) {
-    if (isEmpty(queue)) {
-        printf("La cola está vacía. No se pueden eliminar elementos.\n");
-        return;
-    }
-    printf("%s eliminado de la cola\n", queue->names[queue->front]);
-    if (queue->front == queue->rear) {
-        queue->front = -1;
-        queue->rear = -1;
-    } else if (queue->front == MAX_SIZE - 1) {
-        queue->front = 0;
+// Función para eliminar un elemento de la cola
+void desencolar(struct ColaCircular *cola) {
+    if (cola->cantidad > 0) {
+        printf("Se ha eliminado: %s\n", cola->nombres[cola->frente]);
+        cola->frente = (cola->frente + 1) % MAX_SIZE;
+        cola->cantidad--;
     } else {
-        queue->front = queue->front + 1;
+        printf("La cola está vacía. No se puede eliminar.\n");
     }
-}
-
-void printQueue(Queue* queue) {
-    if (isEmpty(queue)) {
-        printf("La cola está vacía\n");
-        return;
-    }
-    int i = queue->front;
-    printf("Elementos de la cola:\n");
-    while (i != queue->rear) {
-        printf("%s\n", queue->names[i]);
-        i = (i + 1) % MAX_SIZE;
-    }
-    printf("%s\n", queue->names[i]);
 }
 
 int main() {
-    Queue queue;
-    initQueue(&queue);
+    struct ColaCircular cola;
+    inicializarCola(&cola);
 
-    enqueue(&queue, "Mar");
-    enqueue(&queue, "Sella");
-    enqueue(&queue, "Centurión");
+    encolar(&cola, "Mar");
+    encolar(&cola, "Sella");
+    encolar(&cola, "Centurión");
 
-    printQueue(&queue);
+    // Mostrar la cola y sus campos
+    printf("Elementos de la cola:\n");
+    for (int i = 0; i < cola.cantidad; i++) {
+        printf("%s\n", cola.nombres[(cola.frente + i) % MAX_SIZE]);
+    }
+    printf("Frente: %d\n", cola.frente);
+    printf("Final: %d\n", (cola.frente + cola.cantidad - 1) % MAX_SIZE);
 
-    enqueue(&queue, "Gloria");
-    enqueue(&queue, "Generosa");
+    encolar(&cola, "Gloria");
+    encolar(&cola, "Generosa");
+    desencolar(&cola);
+    encolar(&cola, "Positivo");
+    encolar(&cola, "Horche");
 
-    dequeue(&queue);
-
-    enqueue(&queue, "Positivo");
-    enqueue(&queue, "Horche");
-
-    printQueue(&queue);
-
-    dequeue(&queue);
-    dequeue(&queue);
-    dequeue(&queue);
-    dequeue(&queue);
-    dequeue(&queue);
-
-    printQueue(&queue);
+    // Eliminar todos los elementos de la cola
+    while (cola.cantidad > 0) {
+        desencolar(&cola);
+    }
 
     return 0;
 }
