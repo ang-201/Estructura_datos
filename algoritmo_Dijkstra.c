@@ -20,16 +20,21 @@ void printPath(int parent[], int j) {
  
     printPath(parent, parent[j]);
  
-    printf("%d ", j);
+    printf(" -> %d", j);
 }
 
 void printSolution(int dist[], int parent[], int src) {
-    printf("Vertex\tDistance\tPath");
+    printf("\n==============================\n");
+    printf("Resultados del Algoritmo de Dijkstra\n");
+    printf("==============================\n");
+    printf("Nodo de origen: %d\n", src);
+    printf("Nodo\tDistancia\tCamino\n");
     for (int i = 0; i < V; i++) {
-        printf("\n%d\t%d\t\t%d ", i, dist[i], src);
+        printf("%d\t%d\t\t%d", i, dist[i], src);
         printPath(parent, i);
+        printf("\n");
     }
-    printf("\n");
+    printf("==============================\n");
 }
 
 void dijkstra(int graph[V][V], int src) {
