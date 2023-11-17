@@ -1,16 +1,16 @@
 #include <stdio.h>
 
-int funcionHashModulo(int clave, int tamanoTabla) {
-    return clave % tamanoTabla;
+int moduloHash(int clave, int tamañoTabla) {
+    return clave % tamañoTabla;
 }
 
 int main() {
-    int clave = 50;
-    int tamanoTabla = 100;
+    int clave = 10; // La clave que deseas hashear
+    int tamañoTabla = 100; // El tamaño de la tabla hash
 
-    int resultado = funcionHashModulo(clave, tamanoTabla);
-
-    printf("El resultado de la función hash por módulo es: %d\n", resultado);
+    int indice = moduloHash(clave, tamañoTabla);
+    printf("El índice hash para la clave %d es: %d\n", clave, indice);
 
     return 0;
 }
+
